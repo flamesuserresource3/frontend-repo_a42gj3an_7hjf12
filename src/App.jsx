@@ -1,39 +1,58 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Header from "./components/Header";
 import RoomList from "./components/RoomList";
 import ChatView from "./components/ChatView";
 import ProfileFeed from "./components/ProfileFeed";
 import { Home, User } from "lucide-react";
 
+const ROOMS_KEY = "sor_rooms_v1";
+
 export default function App() {
   const [tab, setTab] = useState("rooms");
   const [selectedRoom, setSelectedRoom] = useState(null);
-  const [rooms, setRooms] = useState(() => [
-    {
-      id: "r1",
-      name: "Chill Lounge",
-      topic: "Music, vibes, and friendly talk",
-      cover: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=600&auto=format&fit=crop",
-      members: ["maya", "leo", "ari"],
-      live: true,
-    },
-    {
-      id: "r2",
-      name: "Study Circle",
-      topic: "Quiet cowork & accountability",
-      cover: "https://images.unsplash.com/photo-1518779578993-ec3579fee39f?q=80&w=600&auto=format&fit=crop",
-      members: ["noah"],
-      live: false,
-    },
-    {
-      id: "r3",
-      name: "Tech Talk",
-      topic: "Daily dev standup & Q&A",
-      cover: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=600&auto=format&fit=crop",
-      members: ["zara", "kai", "emi", "jo"],
-      live: false,
-    },
-  ]);
+  const [rooms, setRooms] = useState(() => {
+    const stored = typeof window !== "undefined" && localStorage.getItem(ROOMS_KEY);
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch {}
+    }
+    return [
+      {
+        id: "r1",
+        name: "Chill Lounge",
+        topic: "Music, vibes, and friendly talk",
+        cover:
+          "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=600&auto=format&fit=crop",
+        members: ["maya", "leo", "ari"],
+        live: true,
+      },
+      {
+        id: "r2",
+        name: "Study Circle",
+        topic: "Quiet cowork & accountability",
+        cover:
+          "https://images.unsplash.com/photo-1518779578993-ec3579fee39f?q=80&w=600&auto=format&fit=crop",
+        members: ["noah"],
+        live: false,
+      },
+      {
+        id: "r3",
+        name: "Tech Talk",
+        topic: "Daily dev standup & Q&A",
+        cover:
+          "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=600&auto=format&fit=crop",
+        members: ["zara", "kai", "emi", "jo"],
+        live: false,
+      },
+    ];
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(ROOMS_KEY, JSON.stringify(rooms));
+    } catch {}
+  }, [rooms]);
 
   function createRoom() {
     const name = prompt("Room name");
@@ -59,7 +78,12 @@ export default function App() {
 
   const content = useMemo(() => {
     if (selectedRoom) {
-      return <ChatView room={selectedRoom} onBack={() => setSelectedRoom(null)} />;
+      return (
+        <ChatView
+          room={selectedRoom}
+          onBack={() => setSelectedRoom(null)}
+        />
+      );
     }
     if (tab === "rooms") {
       return <RoomList rooms={rooms} onJoin={joinRoom} />;
